@@ -1,0 +1,7 @@
+name = "nextjs-app"
+pages_build_output_dir = ".next"
+
+compatibility_date = "2024-11-21"
+
+[vars]
+NODE_ENV = "production"
