@@ -34,10 +34,16 @@ export async function onRequestPost(context) {
         })
 
         if (!supabaseResponse.ok) {
-            const error = await supabaseResponse.text()
-            console.error('Supabase error:', error)
+            const errorText = await supabaseResponse.text()
+            console.error('Supabase error:', errorText)
+            console.error('Supabase URL:', supabaseUrl)
+            console.error('Status:', supabaseResponse.status)
             return new Response(
-                JSON.stringify({ error: 'Failed to save submission' }),
+                JSON.stringify({
+                    error: 'Failed to save submission',
+                    details: errorText,
+                    status: supabaseResponse.status
+                }),
                 {
                     status: 500,
                     headers: { 'Content-Type': 'application/json' }
