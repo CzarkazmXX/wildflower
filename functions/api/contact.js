@@ -18,6 +18,21 @@ export async function onRequestPost(context) {
         const supabaseUrl = context.env.NEXT_PUBLIC_SUPABASE_URL
         const supabaseKey = context.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+        // Debug: Check if env vars are available
+        if (!supabaseUrl || !supabaseKey) {
+            console.error('Missing env vars:', { supabaseUrl: !!supabaseUrl, supabaseKey: !!supabaseKey })
+            return new Response(
+                JSON.stringify({
+                    error: 'Server configuration error',
+                    details: 'Missing Supabase credentials'
+                }),
+                {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            )
+        }
+
         const supabaseResponse = await fetch(`${supabaseUrl}/rest/v1/contact_submissions`, {
             method: 'POST',
             headers: {
