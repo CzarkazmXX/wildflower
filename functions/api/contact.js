@@ -1,7 +1,3 @@
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function onRequestPost(context) {
     try {
         const body = await context.request.json()
@@ -33,8 +29,7 @@ export async function onRequestPost(context) {
             body: JSON.stringify({
                 name,
                 email,
-                message,
-                created_at: new Date().toISOString()
+                message
             })
         })
 
@@ -52,18 +47,29 @@ export async function onRequestPost(context) {
 
         // Send email via Resend
         try {
-            await resend.emails.send({
-                from: 'Contact Form <onboarding@resend.dev>',
-                to: context.env.CONTACT_EMAIL,
-                subject: `New Contact Form Submission from ${name}`,
-                html: `
-          <h2>New Contact Form Submission</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, '<br>')}</p>
-        `
+            const resendApiKey = context.env.RESEND_API_KEY
+            const emailResponse = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${resendApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: 'Contact Form <onboarding@resend.dev>',
+                    to: context.env.CONTACT_EMAIL,
+                    subject: `New Contact Form Submission from ${name}`,
+                    html: `
+                        <h2>New Contact Form Submission</h2>
+                        <p><strong>Name:</strong> ${name}</p>
+                        <p><strong>Email:</strong> ${email}</p>
+                        <p><strong>Message:</strong></p>
+                        <p>${message.replace(/\n/g, '<br>')}</p>
+                    `
+                })
             })
+            if (!emailResponse.ok) {
+                console.error('Email error:', await emailResponse.text())
+            }
         } catch (emailError) {
             console.error('Email error:', emailError)
             // Don't fail the request if email fails, data is already saved
